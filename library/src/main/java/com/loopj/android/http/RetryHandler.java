@@ -1,13 +1,13 @@
 /*
     Android Asynchronous Http Client
     Copyright (c) 2011 James Smith <james@loopj.com>
-    http://loopj.com
+    https://loopj.com
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+        https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,8 +40,8 @@ import java.util.HashSet;
 import javax.net.ssl.SSLException;
 
 class RetryHandler implements HttpRequestRetryHandler {
-    private static HashSet<Class<?>> exceptionWhitelist = new HashSet<Class<?>>();
-    private static HashSet<Class<?>> exceptionBlacklist = new HashSet<Class<?>>();
+    private final static HashSet<Class<?>> exceptionWhitelist = new HashSet<Class<?>>();
+    private final static HashSet<Class<?>> exceptionBlacklist = new HashSet<Class<?>>();
 
     static {
         // Retry if the server dropped connection on us
@@ -75,12 +75,12 @@ class RetryHandler implements HttpRequestRetryHandler {
         if (executionCount > maxRetries) {
             // Do not retry if over max retry count
             retry = false;
-        } else if (isInList(exceptionBlacklist, exception)) {
-            // immediately cancel retry if the error is blacklisted
-            retry = false;
         } else if (isInList(exceptionWhitelist, exception)) {
             // immediately retry if error is whitelisted
             retry = true;
+        } else if (isInList(exceptionBlacklist, exception)) {
+            // immediately cancel retry if the error is blacklisted
+            retry = false;
         } else if (!sent) {
             // for most other errors, retry only if request hasn't been fully sent yet
             retry = true;
@@ -92,8 +92,6 @@ class RetryHandler implements HttpRequestRetryHandler {
             if (currentReq == null) {
                 return false;
             }
-            String requestType = currentReq.getMethod();
-            retry = !requestType.equals("POST");
         }
 
         if (retry) {
@@ -103,6 +101,14 @@ class RetryHandler implements HttpRequestRetryHandler {
         }
 
         return retry;
+    }
+
+    static void addClassToWhitelist(Class<?> cls) {
+        exceptionWhitelist.add(cls);
+    }
+
+    static void addClassToBlacklist(Class<?> cls) {
+        exceptionBlacklist.add(cls);
     }
 
     protected boolean isInList(HashSet<Class<?>> list, Throwable error) {
